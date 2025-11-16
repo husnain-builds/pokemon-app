@@ -14,6 +14,7 @@ const Pokemon = () => {
   const dispatch = useDispatch();
 
   const pokemons = useSelector((state) => state.pokemonReducer.pokemon);
+  const totalCount = useSelector((state) => state.pokemonReducer.count);
   const [page, setPage] = useState(0);
   const limit = 20;
   const [query, setQuery] = useState("");
@@ -23,10 +24,18 @@ const Pokemon = () => {
     dispatch(getAllPokemons(limit, 0));
   };
 
-  const handleLoadMore = () => {
-    const nextPage = page + 1;
-    setPage(nextPage);
-    const nextOffset = nextPage * limit;
+  const totalPages =
+    typeof totalCount === "number" && totalCount > 0
+      ? Math.ceil(totalCount / limit)
+      : 0;
+
+  const goToPage = (nextPage) => {
+    if (totalPages === 0) return;
+    const bounded =
+      nextPage < 0 ? 0 : nextPage > totalPages - 1 ? totalPages - 1 : nextPage;
+    setPage(bounded);
+    const nextOffset = bounded * limit;
+    setExpanded({});
     dispatch(getAllPokemons(limit, nextOffset));
   };
 
@@ -270,23 +279,105 @@ const Pokemon = () => {
             No Pokémon found for “{query}”.
           </div>
         )}
-      {Array.isArray(pokemons) && pokemons.length > 0 && (
+      {totalPages > 1 && (
         <div
           style={{ display: "flex", justifyContent: "center", marginTop: 24 }}
         >
-          <button
-            onClick={handleLoadMore}
+          <div
             style={{
-              background: "#111827",
-              color: "#fff",
-              border: "none",
-              padding: "10px 16px",
-              borderRadius: 8,
-              cursor: "pointer",
+              display: "flex",
+              gap: 8,
+              flexWrap: "wrap",
+              alignItems: "center",
             }}
           >
-            Load More
-          </button>
+            <button
+              onClick={() => goToPage(0)}
+              disabled={page === 0}
+              style={{
+                background: page === 0 ? "#e5e7eb" : "#111827",
+                color: page === 0 ? "#6b7280" : "#fff",
+                border: "none",
+                padding: "8px 12px",
+                borderRadius: 8,
+                cursor: page === 0 ? "not-allowed" : "pointer",
+              }}
+            >
+              First
+            </button>
+            <button
+              onClick={() => goToPage(page - 1)}
+              disabled={page === 0}
+              style={{
+                background: page === 0 ? "#e5e7eb" : "#111827",
+                color: page === 0 ? "#6b7280" : "#fff",
+                border: "none",
+                padding: "8px 12px",
+                borderRadius: 8,
+                cursor: page === 0 ? "not-allowed" : "pointer",
+              }}
+            >
+              Prev
+            </button>
+            {(() => {
+              const maxButtons = 5;
+              let start = Math.max(0, page - Math.floor(maxButtons / 2));
+              let end = Math.min(totalPages - 1, start + maxButtons - 1);
+              if (end - start + 1 < maxButtons) {
+                start = Math.max(0, end - maxButtons + 1);
+              }
+              const pages = [];
+              for (let i = start; i <= end; i += 1) {
+                pages.push(i);
+              }
+              return pages;
+            })().map((pNum) => (
+              <button
+                key={pNum}
+                onClick={() => goToPage(pNum)}
+                style={{
+                  background: pNum === page ? "#1976d2" : "#f3f4f6",
+                  color: pNum === page ? "#fff" : "#111827",
+                  border: "none",
+                  padding: "8px 12px",
+                  borderRadius: 8,
+                  cursor: "pointer",
+                  minWidth: 40,
+                  fontWeight: pNum === page ? 700 : 500,
+                }}
+              >
+                {pNum + 1}
+              </button>
+            ))}
+            <button
+              onClick={() => goToPage(page + 1)}
+              disabled={page >= totalPages - 1}
+              style={{
+                background: page >= totalPages - 1 ? "#e5e7eb" : "#111827",
+                color: page >= totalPages - 1 ? "#6b7280" : "#fff",
+                border: "none",
+                padding: "8px 12px",
+                borderRadius: 8,
+                cursor: page >= totalPages - 1 ? "not-allowed" : "pointer",
+              }}
+            >
+              Next
+            </button>
+            <button
+              onClick={() => goToPage(totalPages - 1)}
+              disabled={page >= totalPages - 1}
+              style={{
+                background: page >= totalPages - 1 ? "#e5e7eb" : "#111827",
+                color: page >= totalPages - 1 ? "#6b7280" : "#fff",
+                border: "none",
+                padding: "8px 12px",
+                borderRadius: 8,
+                cursor: page >= totalPages - 1 ? "not-allowed" : "pointer",
+              }}
+            >
+              Last
+            </button>
+          </div>
         </div>
       )}
     </div>

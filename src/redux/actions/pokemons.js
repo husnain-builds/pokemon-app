@@ -27,6 +27,7 @@ const getAllPokemons =
           items,
           offset,
           limit,
+          count: Number(listResponse.data?.count) || 0,
           hasMore: !!listResponse.data?.next,
         },
       });

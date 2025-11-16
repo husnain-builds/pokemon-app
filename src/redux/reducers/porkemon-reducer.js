@@ -5,6 +5,9 @@ const initialState = {
   pokemon: [],
   loading: false,
   error: null,
+  count: 0,
+  limit: 20,
+  offset: 0,
 };
 
 const pokemonReducer = (state = initialState, action) => {
@@ -20,10 +23,19 @@ const pokemonReducer = (state = initialState, action) => {
       }
       return {
         ...state,
-        pokemon:
-          action.payload?.offset > 0
-            ? [...state.pokemon, ...(action.payload?.items || [])]
-            : action.payload?.items || [],
+        pokemon: action.payload?.items || [],
+        count:
+          typeof action.payload?.count === "number"
+            ? action.payload.count
+            : state.count,
+        limit:
+          typeof action.payload?.limit === "number"
+            ? action.payload.limit
+            : state.limit,
+        offset:
+          typeof action.payload?.offset === "number"
+            ? action.payload.offset
+            : state.offset,
         loading: false,
         error: null,
       };
